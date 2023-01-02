@@ -1,0 +1,88 @@
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  annotations: 
+    deployment.kubernetes.io/revision: "1"
+  labels: 
+    app: core-service
+  name: core-service
+  namespace: default
+spec: 
+  replicas: 1
+  selector: 
+    matchLabels: 
+      app: core-service
+  strategy: 
+    rollingUpdate: 
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template: 
+    metadata: 
+      labels: 
+        app: core-service
+    spec: 
+      containers: 
+        - image: "urosvesic/core-service:0.0.1-SNAPSHOT"
+          imagePullPolicy: IfNotPresent
+          name: core-service
+          env:
+            - name: PROD_DB_HOST
+              valueFrom:
+                configMapKeyRef :
+                  name: core-db-config
+                  key: PROD_DB_HOST
+            - name: PROD_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: core-db-config
+                  key: PROD_DB_NAME
+            - name: PROD_DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: core-db-config
+                  key: PROD_DB_USERNAME
+            - name: PROD_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: core-db-config
+                  key: PROD_DB_PORT
+            - name: PROD_DB_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: core-db-config
+                  key: PROD_DB_PASSWORD
+            - name: JWT_ISSUER_URI
+              value: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_WEmesG720
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: core-service
+  name: core-service
+  namespace: default
+spec:
+  ports:
+    - port: 8083
+      protocol: TCP
+      targetPort: 8083
+  selector:
+    app: core-service
+  sessionAffinity: None
+  type: LoadBalancer
+---
+apiVersion : v1
+kind : ConfigMap
+metadata:
+  name: core-db-config
+data:
+  PROD_DB_HOST: containers-us-west-126.railway.app
+  PROD_DB_NAME: railway
+  PROD_DB_PORT: "8031"
+  PROD_DB_USERNAME: root
+  PROD_DB_PASSWORD: ypHPUGnouYvBt8hx6m0K
+  
+
