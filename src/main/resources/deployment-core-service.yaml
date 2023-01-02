@@ -83,6 +83,6 @@ data:
   PROD_DB_NAME: railway
   PROD_DB_PORT: "8031"
   PROD_DB_USERNAME: root
-  PROD_DB_PASSWORD: ypHPUGnouYvBt8hx6m0K
+  PROD_DB_PASSWORD:
   
 
