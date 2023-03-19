@@ -23,8 +23,8 @@ public class PostToNotificationMapper extends GenericResponseMapper<Notification
     public NotificationResponse toDto(Post post, ReactionType reactionType){
         NotificationResponse notificationResponse = toDto(post);
         notificationResponse.setNotificationType(setNotificationType(reactionType));
-        notificationResponse.setMessage(post
-                .getCreatedBy().getUsername()
+        notificationResponse.setMessage(
+                notificationResponse.getSender()
                 + " "
                 + convertToString(setNotificationType(reactionType))
                 + " "

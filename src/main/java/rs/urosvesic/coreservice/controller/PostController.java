@@ -7,12 +7,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import rs.urosvesic.coreservice.dto.CommentDto;
 import rs.urosvesic.coreservice.dto.PostRequest;
 import rs.urosvesic.coreservice.dto.PostResponse;
+import rs.urosvesic.coreservice.dto.ReportedPostDto;
+import rs.urosvesic.coreservice.service.CommentService;
 import rs.urosvesic.coreservice.service.PostService;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -24,6 +28,19 @@ import java.util.stream.Collectors;
 public class PostController {
 
     private PostService postservice;
+    private CommentService commentService;
+
+    @PostMapping("/{postId}/report")
+    public ResponseEntity reportPost(@PathVariable Long postId){
+        postservice.reportPost(postId);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @GetMapping("/{postId}/comment")
+    public ResponseEntity<List<CommentDto>> getAllCommentsFormPost(@PathVariable Long postId){
+        List<CommentDto> commentDtos = commentService.getAllCommentsForPost(postId);
+        return new ResponseEntity<>(commentDtos,HttpStatus.OK);
+    }
 
     @GetMapping("/all")
     public ResponseEntity<List<PostResponse>> getAllPosts(){
@@ -40,6 +57,24 @@ public class PostController {
     public ResponseEntity<List<PostResponse>> getAllPostsForFollowingUsers(){
         List<PostResponse> allPosts = postservice.getAllPostsForFollowingUsers();
         return new ResponseEntity<>(allPosts, HttpStatus.OK);
+    }
+
+    @GetMapping("/secured/reported")
+    public ResponseEntity<Set<ReportedPostDto>> getAllUnsolvedReportedPosts(){
+        Set<ReportedPostDto> reportedPosts= postservice.getAllUnsolvedReportedPosts();
+        return new ResponseEntity<>(reportedPosts,HttpStatus.OK);
+    }
+
+    @GetMapping("/reported-solved")
+    public ResponseEntity<Set<ReportedPostDto>> getAllSolvedPosts(){
+        Set<ReportedPostDto> reportedPosts= postservice.getAllSolvedReportedPosts();
+        return new ResponseEntity<>(reportedPosts,HttpStatus.OK);
+    }
+
+    @PatchMapping("/soft-delete/{id}")
+    public ResponseEntity softDeletePost(@PathVariable Long id){
+        postservice.softDeletePost(id);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     @PostMapping
@@ -60,11 +95,6 @@ public class PostController {
         return new ResponseEntity<>(postResponses,HttpStatus.OK);
     }
 
-//    @PatchMapping("/soft-delete/{id}")
-//    public ResponseEntity softDeletePost(@PathVariable Long id){
-//        postservice.softDeletePost(id);
-//        return new ResponseEntity(HttpStatus.OK);
-//    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable Long id){
@@ -77,18 +107,6 @@ public class PostController {
         postservice.updatePost(id,postRequest);
         return new ResponseEntity(HttpStatus.OK);
     }
-
-//    @GetMapping("/secured/reported")
-//    public ResponseEntity<Set<ReportedPostDto>> getAllUnsolvedReportedPosts(){
-//        Set<ReportedPostDto> reportedPosts= postservice.getAllUnsolvedReportedPosts();
-//        return new ResponseEntity<>(reportedPosts,HttpStatus.OK);
-//    }
-//
-//    @GetMapping("/secured/reported-solved")
-//    public ResponseEntity<Set<ReportedPostDto>> getAllSolvedReportedPosts(){
-//        Set<ReportedPostDto> reportedPosts= postservice.getAllSolvedReportedPosts();
-//        return new ResponseEntity<>(reportedPosts,HttpStatus.OK);
-//    }
 
     @ExceptionHandler(RuntimeException.class)
     public  ResponseEntity<String> handleMyRuntimeException(RuntimeException ex){

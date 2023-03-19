@@ -21,8 +21,8 @@ public class NotificationService {
         if(!post.getCreatedBy().getUsername().equals(UserUtil.getCurrentUsername())){
             NotificationResponse notificationResponse = postToNotificationMapper
                     .toDto(post, reactionType);
-            //kafkaProducer.sendNotificationToTopic(notificationResponse);
-            notificationClient.saveNotification(notificationResponse, UserUtil.getToken());
+            kafkaProducer.sendNotificationToTopic(notificationResponse);
+            //notificationClient.saveNotification(notificationResponse, UserUtil.getToken());
         }
     }
 }

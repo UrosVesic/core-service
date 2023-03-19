@@ -1,6 +1,7 @@
 package rs.urosvesic.coreservice.model;
 
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -16,7 +17,7 @@ import java.util.List;
 @Table(name= "myuser")
 public class User implements MyEntity {
     @Id
-    private String userId;
+    private String id;
 
     @Column(unique = true, nullable = false)
     private String username;
@@ -24,6 +25,7 @@ public class User implements MyEntity {
     @Email
     @Column(unique = true, nullable = false)
     private String email;
+    @CreationTimestamp
     private Instant created;
     private String bio;
     @ManyToMany(fetch = FetchType.LAZY)
@@ -34,6 +36,8 @@ public class User implements MyEntity {
 
     @ManyToMany(mappedBy = "following",fetch = FetchType.LAZY)
     private List<User> followers;
+
+    private boolean enabled;
 
 
     public int getMutualFollowers(User currentUser) {

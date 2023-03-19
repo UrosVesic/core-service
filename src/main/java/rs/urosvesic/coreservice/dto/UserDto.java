@@ -23,4 +23,5 @@ public class UserDto implements Dto{
     private boolean followedByCurrentUser;
     private int mutualFollowers;
     private String bio;
+    private boolean enabled;
 }

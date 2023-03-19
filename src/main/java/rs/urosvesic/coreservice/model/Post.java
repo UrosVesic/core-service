@@ -31,7 +31,7 @@ public class Post implements MyEntity{
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", referencedColumnName = "userId")
+    @JoinColumn(name = "userId", referencedColumnName = "id")
     private User createdBy;
 
     @CreationTimestamp

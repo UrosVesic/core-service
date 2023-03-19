@@ -3,9 +3,8 @@ package rs.urosvesic.coreservice.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import rs.urosvesic.coreservice.dto.ReportedUserDto;
 import rs.urosvesic.coreservice.dto.SaveUserRequest;
 import rs.urosvesic.coreservice.dto.UserDto;
 import rs.urosvesic.coreservice.service.UserService;
@@ -27,11 +26,10 @@ public class UserController {
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @GetMapping
-    public ResponseEntity<String> test(){
-        Jwt principal = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String username = (String) principal.getClaims().get("cognito:username");
-        return new ResponseEntity<>(username,HttpStatus.OK);
+    @GetMapping("/reported")
+    public ResponseEntity<List<ReportedUserDto>> getAllReportedUsers(){
+        List<ReportedUserDto> reportedUserDtos = userService.getReportedUsers();
+        return new ResponseEntity<>(reportedUserDtos,HttpStatus.OK);
     }
 
     @PostMapping(value = "/follow/{username}")
@@ -39,12 +37,6 @@ public class UserController {
         userService.follow(username);
         return new ResponseEntity<>( HttpStatus.CREATED);
     }
-
-    /*@PostMapping("/{username}/assign/{rolename}")
-    public ResponseEntity assignRole(@PathVariable String username,@PathVariable String rolename){
-        userService.assignRole(username,rolename);
-        return new ResponseEntity(HttpStatus.OK);
-    }*/
 
     @PostMapping("/unfollow/{username}")
     public ResponseEntity unfollow(@PathVariable String username){
@@ -59,11 +51,6 @@ public class UserController {
         return new ResponseEntity<>(userDto,HttpStatus.OK);
     }
 
-   /* @GetMapping("/followers/{userId}")
-    public ResponseEntity<List<UserDto>> getAllFollowersForUser(@PathVariable Long userId){
-        return new ResponseEntity<>(userService.getAllFollowersForUser(userId),HttpStatus.OK);
-    }*/
-
     @GetMapping("/profile-info/{username}")
     public ResponseEntity<UserDto> getProfileInfo(@PathVariable String username){
         UserDto userResponse=userService.getProfileInfo(username);
@@ -75,11 +62,7 @@ public class UserController {
         return new ResponseEntity<>(users,HttpStatus.OK);
     }
 
-    /*@GetMapping("/reported")
-    public ResponseEntity<List<ReportedUserDto>> getAllReportedUsers(){
-        List<ReportedUserDto> reportedUserDtos = userService.getReportedUsers();
-        return new ResponseEntity<>(reportedUserDtos,HttpStatus.OK);
-    }
+
 
     @PatchMapping("/disable/{username}")
     public ResponseEntity disableUser(@PathVariable String username){
@@ -91,7 +74,7 @@ public class UserController {
     public ResponseEntity enable(@PathVariable String username){
         userService.enableUser(username);
         return new ResponseEntity(HttpStatus.OK);
-    }*/
+    }
 
     @GetMapping("/{username}/followers")
     public ResponseEntity<List<UserDto>> getAllFollowersForUser(@PathVariable String username){

@@ -3,12 +3,18 @@ package rs.urosvesic.coreservice.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import rs.urosvesic.coreservice.client.AuthClient;
+import rs.urosvesic.coreservice.dto.ReportedUserDto;
 import rs.urosvesic.coreservice.dto.SaveUserRequest;
 import rs.urosvesic.coreservice.dto.UserDto;
+import rs.urosvesic.coreservice.mapper.ReportedUserMapper;
 import rs.urosvesic.coreservice.mapper.UserMapper;
 import rs.urosvesic.coreservice.model.Following;
+import rs.urosvesic.coreservice.model.PostReport;
+import rs.urosvesic.coreservice.model.ReportStatus;
 import rs.urosvesic.coreservice.model.User;
 import rs.urosvesic.coreservice.repository.FollowRepository;
+import rs.urosvesic.coreservice.repository.PostReportRepository;
 import rs.urosvesic.coreservice.repository.UserRepository;
 import rs.urosvesic.coreservice.util.UserUtil;
 
@@ -27,13 +33,17 @@ public class UserService {
     private final FollowRepository followRepository;
     private final UserMapper userMapper;
     private final UserUtil userUtil;
+    private final AuthClient authClient;
+    private final PostReportRepository postReportRepository;
+    private final ReportedUserMapper reportedUserMapper;
 
     public void save(SaveUserRequest request) {
         if(!userRepository.existsById(request.getId())){
             User user = new User();
-            user.setUserId(request.getId());
+            user.setId(request.getId());
             user.setEmail(request.getEmail());
             user.setUsername(request.getUsername());
+            user.setEnabled(true);
             userRepository.save(user);
         }
     }
@@ -110,57 +120,65 @@ public class UserService {
     @Transactional
     public List<UserDto> getAllSuggestedUsers() {
         //List<User> notFollowing = userRepository.findByUserIdNotInAndIsEnabled(authService.getCurrentUser().getFollowing().stream().map((user)->user.getUserId()).collect(Collectors.toList()),true);
+        List<String> ids = userUtil.getCurrentUser().getFollowing()
+                .stream()
+                .map(User::getId)
+                .collect(Collectors.toList());
+        ids.add(UserUtil.getCurrentUserId());
         List<User> notFollowing = userRepository
-                .findByUserIdNotIn(userUtil.getCurrentUser().getFollowing()
-                        .stream()
-                        .map(User::getUserId)
-                        .toList())
+                .findByIdNotIn(ids)
                 .stream()
                 .sorted(Comparator.comparingInt(user->user.getMutualFollowers(userUtil.getCurrentUser())))
                 .collect(Collectors.toList());
         if(notFollowing.size()==0){
             return Collections.emptyList();
         }
-        notFollowing.remove(userUtil.getCurrentUser());
         Collections.reverse(notFollowing);
         return notFollowing.stream().map(userMapper::toDto).toList();
     }
     @Transactional
     public void updateUser(UserDto userDto) {
+        if (!UserUtil.getAuthorities().contains("admin") && !userDto.getUsername().equals(UserUtil.getCurrentUsername())){
+            throw new RuntimeException("You can update only your account");
+        }
         User user = userRepository.findById(userDto.getUserId()).orElseThrow(() -> new RuntimeException("User not found"));
-        if(userRepository.findByUsername(userDto.getUsername()).isPresent() && !user.getUsername().equals(userDto.getUsername())){
+        if(userRepository.findByUsername(userDto.getUsername()).isPresent() &&
+                !user.getUsername().equals(userDto.getUsername())){
             throw new RuntimeException("Username taken");
         }
-        if(userRepository.findByEmail(userDto.getEmail()).isPresent() && !user.getEmail().equals(userDto.getEmail())){
+        if(userRepository.findByEmail(userDto.getEmail()).isPresent() &&
+                !user.getEmail().equals(userDto.getEmail())){
             throw new RuntimeException("Email linked to another account");
         }
         User toUpdate = userMapper.toEntity(userDto);
         userRepository.save(toUpdate);
     }
 
-    /*public void assignRole(String username,String rolename) {
-        Role role = roleRepository.findByName(rolename).orElseThrow(()->new MyRuntimeException(("Role not found")));
-        User user = userRepository.findByUsername(username).orElseThrow(()->new MyRuntimeException("User not found"));
-        user.addRole(role);
-        userRepository.save(user);
-    }
 
     @Transactional
     public List<ReportedUserDto> getReportedUsers() {
         List<PostReport> postReports =postReportRepository.findByReportStatus(ReportStatus.DELETED);
-        List<User> users = postReports.stream().map(report->report.getPost().getUser()).collect(Collectors.toList());
+        List<User> users = postReports.stream().map(report->report.getPost().getCreatedBy()).collect(Collectors.toList());
         return users.stream().distinct().map(user->reportedUserMapper.toDto(user)).collect(Collectors.toList());
     }
 
     public void disableUser(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(()->new MyRuntimeException("User not found"));
+        User user = userRepository.findByUsername(username).orElseThrow(()->new RuntimeException("User not found"));
+        authClient.disableUser(username, UserUtil.getToken());
         user.setEnabled(false);
         userRepository.save(user);
     }
 
     public void enableUser(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(()->new MyRuntimeException("User not found"));
+        User user = userRepository.findByUsername(username).orElseThrow(()->new RuntimeException("User not found"));
+        authClient.enableUser(username, UserUtil.getToken());
         user.setEnabled(true);
         userRepository.save(user);
-    }*/
+    }
+
+    public UserDto findUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return userMapper.toDto(user);
+    }
 }

@@ -24,7 +24,7 @@ public class FollowingService {
 
     @Transactional
     public List<UserDto> getFollowersForUser(String userId) {
-        List<Following> optFoll = followRepository.findAllByFollowed_userId(userId);
+        List<Following> optFoll = followRepository.findAllByFollowed_Id(userId);
         List<User> followers = optFoll.stream().map(Following::getFollowing).toList();
         List<UserDto> followersDto= followers.stream()
                 .map((userToMap)->userMapper.toDto(userToMap))
@@ -34,7 +34,7 @@ public class FollowingService {
 
     @Transactional
     public List<UserDto> getFollowingForUser(String userId) {
-        List<Following> optFoll = followRepository.findAllByFollowing_UserId(userId);
+        List<Following> optFoll = followRepository.findAllByFollowing_Id(userId);
         List<User> followers = optFoll.stream().map(Following::getFollowed).toList();
         List<UserDto> followersDto= followers.stream().map((userToMap)->userMapper.toDto(userToMap)).collect(Collectors.toList());
         return followersDto;

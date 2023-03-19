@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 import rs.urosvesic.coreservice.model.User;
 import rs.urosvesic.coreservice.repository.UserRepository;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class UserUtil {
@@ -22,6 +24,9 @@ public class UserUtil {
 
     public static String getCurrentUserId(){
         return getPrincipal().getClaimAsString("sub");
+    }
+    public static List<String> getAuthorities(){
+        return getPrincipal().getClaimAsStringList("cognito:groups");
     }
 
 

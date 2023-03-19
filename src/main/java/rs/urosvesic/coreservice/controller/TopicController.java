@@ -21,9 +21,9 @@ public class TopicController {
 
     private TopicService topicService;
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<TopicDto>> getAllTopics(){
-    return new ResponseEntity<>(topicService.getAllTopics(), HttpStatus.OK);
+        return new ResponseEntity<>(topicService.getAllTopics(), HttpStatus.OK);
     }
     @PostMapping
     public ResponseEntity createTopic(@RequestBody TopicDto topic){
