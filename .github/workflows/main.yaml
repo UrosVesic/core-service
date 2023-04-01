@@ -46,7 +46,6 @@ jobs:
 
     - name: Get GKE credentials
       run: |-
-            gcloud config set account urosvesicpo@gmail.com
             export USE_GKE_GCLOUD_AUTH_PLUGIN=True
             gcloud container clusters get-credentials "$GKE_CLUSTER" --region "$GKE_ZONE" --project "$PROJECT_ID"
 
