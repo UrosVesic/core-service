@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: core-service
+spec:
+  ports:
+    - port: 8083
+      protocol: TCP
+      targetPort: 8083
+  selector:
+    app: core-service
+  sessionAffinity: None
+  type: LoadBalancer
