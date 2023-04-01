@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: core-service
+spec: 
+  replicas: 1
+  selector: 
+    matchLabels: 
+      app: core-service
+  strategy: 
+    rollingUpdate: 
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template: 
+    metadata: 
+      labels: 
+        app: core-service
+    spec: 
+      containers: 
+        - image: gcr.io/PROJECT_ID/IMAGE:TAG
+          imagePullPolicy: IfNotPresent
+          name: core-service
+          env:
+            - name: PROD_DB_HOST
+              valueFrom:
+                configMapKeyRef :
+                  name: core-db-config
+                  key: PROD_DB_HOST
+            - name: PROD_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: core-db-config
+                  key: PROD_DB_NAME
+            - name: PROD_DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: core-db-config
+                  key: PROD_DB_USERNAME
+            - name: PROD_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: core-db-config
+                  key: PROD_DB_PORT
+            - name: PROD_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: core-db-secret
+                  key: PROD_DB_PASSWORD
+            - name: JWT_ISSUER_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-config
+                  key: JWT_ISSUER_URI
+      restartPolicy: Always
