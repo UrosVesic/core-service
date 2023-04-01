@@ -7,5 +7,5 @@ RUN mvn -f /usr/home/core-service/pom.xml clean package -DskipTests
 # Stage 2: Package the application
 FROM openjdk:17-jdk
 COPY --from=build /usr/home/core-service/target/*.jar /core-service.jar
-EXPOSE 8082
+EXPOSE 8083
 ENTRYPOINT ["java","-jar","/core-service.jar"]
